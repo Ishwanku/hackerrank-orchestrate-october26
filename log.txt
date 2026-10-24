@@ -63,3 +63,27 @@ branch=main
 repo_root=/root/hackerrank-orchestrate-october26
 worktree=main
 parent_agent=none
+
+## [2026-10-24T14:00:00Z] Engineering review: remove unsupported links, tests, reports
+
+User Prompt (verbatim, secrets redacted):
+[Attached file "Continue the HackerRank Orchestrate October 2026 Project": continue from the existing implementation; inspect first; prioritise account attribution (no ID-order tie-breaking), evidence coverage (PDF/screens), anonymized analytics (no guesswork), snapshot regression tests; build independent tests; keep stdlib-only and deterministic; complete README, evaluation_report.md, usage_report.md, code.zip, transcript; do not push until owner/repo confirmed; never expose API keys; report honestly.]
+
+Agent Response Summary:
+Sent an engineering assessment first (risks: 137 tie-broken accounts, 9 count-matched analytics, weak OCR, no regression tests). Removed ID-order tie-breaking and analytics count matching; workflow attribution now accepts only unique (reported day, result) matches and labels them inferred:workflow-unique. Replaced OCR-only perception with deterministic pdftotext + tesseract extraction using single-record and subject-filter page rules plus closed-world email snapping; no model calls made. Added 16 synthetic regression tests (all pass), an ablation harness, evaluation_report.md, usage_report.md (0 model calls, measured), and a solution README; organizer README preserved as CHALLENGE_README.md. Sample: status 1.000, step precision 1.000, recall 0.902, false-COMPLETE 0; full run 518 rows, validator OK, byte-identical across runs and from a clean clone.
+
+Actions:
+* Edited code/ghostaudit/attribution.py, perception/extract.py, ingest/sqlsnap.py, state.py, identity.py, intent.py, code/main.py; added code/ghostaudit/ablation.py
+* Added code/tests/test_audit.py, code/evaluation/ablation.py, code/evaluation/evaluation_report.md, code/evaluation/usage_report.md, README.md; git mv README.md CHALLENGE_README.md
+* Ran python3 code/main.py (full + --sample), code/evaluation/score.py, diff.py, ablation.py, python3 -m unittest discover -s code/tests
+* Rebuilt code/cache with perception/extract.py --force (local backend)
+* Clean-clone reproduction in scratchpad; built code.zip (61 KB, 53 entries, no dataset/venv/secrets)
+* git commits 145ba5e and following (local only; nothing pushed)
+
+Context:
+tool=Claude (claude.ai app, agentic workspace)
+model=claude-opus-5-5
+branch=main
+repo_root=/root/hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none

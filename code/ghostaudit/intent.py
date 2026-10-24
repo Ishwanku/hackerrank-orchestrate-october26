@@ -9,8 +9,8 @@ in the data.
 Texts with neither kind of cue are follow-ups on an existing deletion
 request ("confirm the profile is gone") and count as deletion.
 
-An optional LLM cross-check (perception/llm.py) can audit disagreements; it is
-never needed to produce the output.
+No model is used: the ten non-deletion requests in the data all state their
+purpose explicitly, so rules are exact here and fully testable.
 """
 from __future__ import annotations
 
