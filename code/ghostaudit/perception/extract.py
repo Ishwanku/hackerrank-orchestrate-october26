@@ -199,6 +199,9 @@ def main(argv=None) -> int:
     ap.add_argument("--dataset", default=str(ROOT / "dataset"))
     ap.add_argument("--out", default=str(CODE / "cache"))
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--images-only", action="store_true",
+                    help="process only PNG screenshots (PDF text already extracts deterministically)")
+    ap.add_argument("--dry-run", action="store_true", help="list the files that would be processed")
     args = ap.parse_args(argv)
     dataset, out = Path(args.dataset), Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -209,13 +212,18 @@ def main(argv=None) -> int:
         if a["field_name"] == "email":
             known |= {norm_ident(a["old_value"]), norm_ident(a["new_value"])}
     key = _env_key() if args.backend == "anthropic" else None
-    if args.backend == "anthropic" and not key:
+    if args.backend == "anthropic" and not key and not args.dry_run:
         print("ANTHROPIC_API_KEY not set (env or .env); use --backend local or add the key.")
         return 2
     usage_log = out / "usage_log.jsonl"
     for ef in load_manifest(dataset / "evidence_files.csv"):
         path = dataset / ef.path
         if path.suffix.lower() not in (".pdf", ".png"):
+            continue
+        if args.images_only and path.suffix.lower() != ".png":
+            continue
+        if args.dry_run:
+            print("would process", ef.file_id, ef.path)
             continue
         target = out / f"{ef.file_id}.json"
         if target.exists() and not args.force:

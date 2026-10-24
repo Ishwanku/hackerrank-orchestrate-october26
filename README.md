@@ -17,6 +17,7 @@ python3 code/main.py --sample        # -> code/run/sample_pred.csv for the 32 sa
 python3 code/evaluation/score.py     # metrics against dataset/sample_output.csv
 python3 -m unittest discover -s code/tests -v   # 16 independent regression tests
 python3 code/evaluation/ablation.py  # one-component-off study (Markdown table)
+python3 code/main.py --trail && python3 code/evaluation/audit_output.py   # independent contract + leakage audit
 ```
 
 Expected output of the first command: `wrote …/output.csv rows=518 {'INCOMPLETE': 352, 'COMPLETE': 156, 'NOT_APPLICABLE': 10}` followed by `validation: OK`. Re-running it produces a byte-identical file.
@@ -29,7 +30,8 @@ Facts from the 4 PDFs and 11 screenshots are cached in `code/cache/*.json` and r
 
 ```bash
 python3 code/ghostaudit/perception/extract.py --force                     # pdftotext + tesseract, no model
-python3 code/ghostaudit/perception/extract.py --backend anthropic --force # optional vision model
+python3 code/ghostaudit/perception/extract.py --backend anthropic --images-only --out code/cache_vision  # optional vision model
+python3 code/main.py --cache code/cache_vision --out code/run/output_vision.csv                         # compare before adopting
 ```
 
 The `anthropic` backend reads `ANTHROPIC_API_KEY` from the environment or from a git-ignored `.env` (see `.env.example`). It was **not** used for the submitted output.
@@ -85,7 +87,7 @@ Development set (32 samples): status accuracy 1.000, step precision 1.000, step 
 
 - No secrets in code, config or logs. `.env` is git-ignored, and `.env.example` documents the only variable.
 - Evidence text is treated as data. Nothing extracted from files is executed or followed as an instruction.
-- `code.zip` excludes `dataset/`, virtual environments, caches and run artefacts:
+- `code.zip` excludes `dataset/`, virtual environments, `__pycache__` and `code/run/` artefacts. It **includes** `code/cache/*.json` (facts extracted once from the 15 PDFs/screenshots): without it the submitted output cannot be reproduced on a machine lacking `pdftotext`/`tesseract` (ablation: perception off changes the result). These files are derived evidence, not the provided dataset.
 
 ```bash
 zip -r code.zip README.md code -x "*/__pycache__/*" "*/.venv/*" "*/venv/*" "code/run/*" "*/.DS_Store"

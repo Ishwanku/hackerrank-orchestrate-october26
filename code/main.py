@@ -41,11 +41,13 @@ def main(argv=None) -> int:
     ap.add_argument("--sample", action="store_true", help="run on sample requests")
     ap.add_argument("--out", default=None)
     ap.add_argument("--trail", action="store_true", help="write audit trail JSONL")
+    ap.add_argument("--cache", default=str(HERE / "cache"),
+                    help="perception cache directory (default code/cache)")
     args = ap.parse_args(argv)
 
     t0 = time.time()
     dataset = Path(args.dataset)
-    extra = [] if off("perception") else load_perception(dataset, HERE / "cache")
+    extra = [] if off("perception") else load_perception(dataset, Path(args.cache))
     world = load_world(dataset, extra_observations=extra)
     auditor = Auditor(world)
     requests = world.sample_requests if args.sample else world.requests
