@@ -1,6 +1,6 @@
 # Evaluation Report — Ghost Data Still Exists
 
-All numbers below come from running the code in this repository (commands in each section). The 32 public samples are a **development set** that the rules were studied against, so they are not an unbiased estimate of hidden-test accuracy. The independent tests in section 4 were written from the specification, not from the samples.
+All numbers below come from running the code in this repository (commands in each section). The 32 public samples are a **development set** that the rules were studied against, so they are not an unbiased estimate of hidden-test accuracy. The independent tests in section 4 were written from the specification, not from the samples. **Performance on the hidden 518-case answers is unknown.**
 
 ## 1. Headline metrics (32 sample cases)
 
