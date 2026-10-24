@@ -32,3 +32,34 @@ branch=main
 repo_root=/root/hackerrank-orchestrate-october26
 worktree=main
 parent_agent=none
+
+## [2026-10-24T15:30:00Z] Decisions, ponytail discipline, baseline engine built
+
+User Prompt (verbatim, secrets redacted):
+1. repo can add to my personal github if it is okay
+
+
+2. use this claude LLM for all i have api key let me know where to add 
+
+
+3. do recomended and impressive
+
+[mid-turn] also use ponytail for codding  [DietrichGebert/ponytail: Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.](https://github.com/DietrichGebert/ponytail)
+
+Agent Response Summary:
+Recorded decisions (private personal GitHub repo; Claude via Anthropic API with the key kept in a git-ignored local .env; numeric case order) and treated the answers as plan approval. Reviewed ponytail (style-only skill) and adopted its rules: stdlib first, no new dependencies, `ponytail:` comments on deliberate shortcuts, small self-tests; the organizer AGENTS.md was left untouched. Built the deterministic pipeline (ingest -> identity -> evidence graph -> workflow attribution -> state at audit_at -> policy planner -> validator) plus a perception layer (Anthropic vision backend + OCR fallback with closed-world email snapping). Key data findings: half the cases have accounts linkable only via deletion-worker activity, matched by reported day + reported_status->result mapping (251/254 on evidence-linked accounts); listing snapshots prove absence only for subjects they cover. Sample metrics: status 0.969, step F1 0.949, precision 0.989; full 518-row output validates.
+
+Actions:
+* Created .gitignore, .env.example, code/ghostaudit/* (models, config, ingest/*, identity, graph, attribution, state, planner, intent, pipeline, validate, perception/*), code/main.py, code/evaluation/score.py, code/evaluation/diff.py
+* Ran python3 code/main.py --sample / full run; python3 code/evaluation/score.py
+* Ran perception/extract.py --backend ocr (interim cache)
+* WebFetch ponytail repo + SKILL.md; WebFetch Anthropic pricing page
+* git commits 5932e40, 2cb5776 (local; remote not yet configured)
+
+Context:
+tool=Claude (claude.ai app, agentic workspace)
+model=claude-opus-5-5
+branch=main
+repo_root=/root/hackerrank-orchestrate-october26
+worktree=main
+parent_agent=none
