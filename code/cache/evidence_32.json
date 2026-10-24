@@ -1,7 +1,7 @@
 {
  "file_id": "evidence_32",
  "path": "evidence/images/backup_restore_console_20260429.png",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-04-29T09:00:00Z",
  "usage": {},

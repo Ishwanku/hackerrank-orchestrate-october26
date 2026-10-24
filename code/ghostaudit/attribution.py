@@ -12,8 +12,15 @@ Two sources, in order of trust:
    evidence-linked accounts, the worker's primary-profile delete happens on the
    request's *reported day* and its reported result matches the request's
    reported_status (COMPLETE->SUCCESS, PARTIALLY_COMPLETE->PARTIAL,
-   NOT_STARTED->FAILED) in 251/254 cases. Unowned worker actions are assigned
-   to requests that still lack that resource type, using that key.
+   NOT_STARTED->FAILED) in 251/254 cases. An unowned primary-profile deletion
+   is attributed only when that key matches exactly one candidate and one
+   request. This is an *inferred* link (timestamp + the workflow's own status,
+   AGENTS.md 6.6 "timestamps ... and other grounded links"), never presented as
+   confirmed identity; the audit trail labels it ``inferred:workflow-unique``.
+
+   Anonymized analytics rows with no identifier are NOT attributed: nothing in
+   the specification or the evidence ties them to a person, and count matching
+   would be guesswork.
 """
 from __future__ import annotations
 
@@ -23,13 +30,12 @@ from dataclasses import dataclass, field
 from .config import prefix_of
 from .graph import EvidenceGraph
 from .identity import IdentityIndex
+from .intent import classify
 from .models import Request
 from .world import World
 
 STATUS_TO_RESULT = {"COMPLETE": "SUCCESS", "PARTIALLY_COMPLETE": "PARTIAL",
                     "NOT_STARTED": "FAILED"}
-# resource types the worker touches that commonly lose every identifier
-WORKFLOW_TYPES = ("account", "analytics")
 
 
 @dataclass
@@ -37,11 +43,9 @@ class Attribution:
     resources: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     via: dict[tuple[str, str], str] = field(default_factory=dict)   # (case, rid) -> how
     owner: dict[str, str] = field(default_factory=dict)             # rid -> user (evidence)
+    # (case, resource type, candidate ids) left open because the match was not unique
+    unresolved: list[tuple[str, str, list[str]]] = field(default_factory=list)
 
-
-def _num(s: str) -> int:
-    tail = s.rsplit("_", 1)[-1]
-    return int(tail) if tail.isdigit() else 0
 
 
 def _stale_negative(world: World, rid: str, links, requested_at: str) -> bool:
@@ -79,32 +83,31 @@ def attribute(world: World, idx: IdentityIndex, graph: EvidenceGraph,
             att.resources[r.case_id].add(rid)
             att.via[(r.case_id, rid)] = "evidence"
 
-    # 2. workflow attribution of unowned deletion-worker actions
-    for rtype in WORKFLOW_TYPES:
-        candidates: dict[tuple, list[str]] = defaultdict(list)
-        for c in world.claims:
-            if c.fields.get("source_system") != "deletion_worker" or c.resource_id in att.owner:
-                continue
-            if prefix_of(c.resource_id) != rtype:
-                continue
-            key_result = c.status if rtype == "account" else "*"
-            candidates[(c.observed_at[:10], key_result)].append(c.resource_id)
-        needy: dict[tuple, list[Request]] = defaultdict(list)
-        for r in requests:
-            if any(prefix_of(x) == rtype for x in att.resources[r.case_id]):
-                continue
-            key_result = STATUS_TO_RESULT.get(r.reported_status, "") if rtype == "account" else "*"
-            needy[(r.reported_at[:10], key_result)].append(r)
-        for key, rids in candidates.items():
-            cases = sorted(needy.get(key, []), key=lambda r: _num(r.case_id))
-            rids = sorted(set(rids), key=_num)
-            if rtype == "analytics" and len(cases) != len(rids):
-                # ponytail: analytics are attributed only when the day's counts
-                # match exactly; otherwise the guess is worse than omission.
-                continue
-            # ponytail: ties inside one (day, result) group are broken by id order,
-            # which measured at chance level; the README reports this as a known limit.
-            for r, rid in zip(cases, rids):
-                att.resources[r.case_id].add(rid)
-                att.via[(r.case_id, rid)] = "workflow" if len(cases) == 1 else "workflow-tie"
+    # 2. workflow attribution of unowned primary-profile deletions.
+    # Only a *unique* match is accepted: exactly one unowned account deletion
+    # and exactly one deletion request still lacking an account share the key
+    # (reported day, reported result). Anything else (a tie, a count mismatch)
+    # is left unattributed -- an unsupported identity claim is worse than a gap.
+    candidates: dict[tuple, set[str]] = defaultdict(set)
+    for c in world.claims:
+        if (c.fields.get("source_system") == "deletion_worker"
+                and c.fields.get("event_type") == "DELETE_RECORD"
+                and prefix_of(c.resource_id) == "account" and c.resource_id not in att.owner):
+            candidates[(c.observed_at[:10], c.status)].add(c.resource_id)
+    needy: dict[tuple, list[Request]] = defaultdict(list)
+    for r in requests:
+        if not classify(r.request_text)[0]:
+            continue
+        if any(prefix_of(x) == "account" for x in att.resources[r.case_id]):
+            continue
+        needy[(r.reported_at[:10], STATUS_TO_RESULT.get(r.reported_status, ""))].append(r)
+    for key, rids in candidates.items():
+        cases = needy.get(key, [])
+        if len(cases) == 1 and len(rids) == 1:
+            rid = next(iter(rids))
+            att.resources[cases[0].case_id].add(rid)
+            att.via[(cases[0].case_id, rid)] = "inferred:workflow-unique"
+        else:
+            for r in cases:
+                att.unresolved.append((r.case_id, "account", sorted(rids)))
     return att

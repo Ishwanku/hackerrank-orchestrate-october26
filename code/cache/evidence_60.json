@@ -1,7 +1,7 @@
 {
  "file_id": "evidence_60",
  "path": "evidence/images/marketing_profile_console.png",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-09-16T07:20:00Z",
  "usage": {},
@@ -9,6 +9,7 @@
   {
    "resource_id": "marketing_001",
    "email": null,
+   "phone": "+82 10-5837-9451",
    "_unverified_email": "sj.park@naver.com"
   }
  ]

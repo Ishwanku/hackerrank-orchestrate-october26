@@ -1,9 +1,0 @@
-{
- "file_id": "evidence_27",
- "path": "evidence/documents/legal_retention_register_20260529.pdf",
- "backend": "ocr",
- "model": "tesseract",
- "captured_at": "2026-05-29T08:00:00Z",
- "usage": {},
- "records": []
-}

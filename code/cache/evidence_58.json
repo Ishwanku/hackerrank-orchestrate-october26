@@ -1,13 +1,16 @@
 {
  "file_id": "evidence_58",
  "path": "evidence/documents/delivery_correction_attachment.pdf",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-09-12T07:30:00Z",
  "usage": {},
  "records": [
   {
-   "resource_id": "support_001"
+   "resource_id": "support_001",
+   "email": "priya.raman@gmail.com",
+   "phone": "+91 98765 73142",
+   "file_name": "attachment"
   }
  ]
 }

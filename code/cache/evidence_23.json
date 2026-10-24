@@ -1,7 +1,7 @@
 {
  "file_id": "evidence_23",
  "path": "evidence/images/customer_export_console_20260618.png",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-06-18T12:00:00Z",
  "usage": {},

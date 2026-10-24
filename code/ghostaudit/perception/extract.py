@@ -1,7 +1,7 @@
 """One-time extraction of facts from PDF and PNG evidence into code/cache/.
 
-    python3 code/ghostaudit/perception/extract.py --backend anthropic   # vision LLM
-    python3 code/ghostaudit/perception/extract.py --backend ocr         # offline fallback
+    python3 code/ghostaudit/perception/extract.py                       # local: pdftotext + tesseract
+    python3 code/ghostaudit/perception/extract.py --backend anthropic   # optional vision LLM
 
 Why a cache: the 15 binary files never change, so reading them once keeps every
 later run deterministic, offline and free. The pipeline only reads the cache.
@@ -97,19 +97,59 @@ def call_anthropic(model: str, content: list, key: str) -> tuple[dict, dict]:
     raise RuntimeError(f"Anthropic call failed after retries: {last}")
 
 
-def ocr_records(text: str) -> list[dict]:
-    """Offline fallback: one record per resource id, carrying identifiers on its line."""
-    email_re = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+PHONE_RE = re.compile(r"\+\d[\d \-]{6,}\d")
+USER_RE = re.compile(r"\buser_\d+\b")
+RETAIN_RE = re.compile(r"retain(?:ed)? until\s+(\d{1,2} \w{3} \d{4})", re.I)
+MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug",
+                                       "sep", "oct", "nov", "dec"], 1)}
+
+
+def _iso_day(text: str) -> str | None:
+    d, mon, y = text.split()
+    m = MONTHS.get(mon[:3].lower())
+    return f"{y}-{m:02d}-{int(d):02d}T00:00:00Z" if m else None
+
+
+def local_records(text: str, kind: str) -> list[dict]:
+    """Deterministic extraction from pdftotext / tesseract output.
+
+    * line level: a resource id takes the identifiers printed on its own line;
+    * document level: when a document or screen shows exactly ONE resource id
+      (a PDF about one ticket, a detail page) or is explicitly filtered to one
+      subject ("Subject filter: user_03"), the page-wide identifiers belong to
+      that record / those records. Anything else stays unlinked.
+    """
     out: dict[str, dict] = {}
     for line in text.splitlines():
         for rid in RID_RE.findall(line):
             rec = out.setdefault(rid, {"resource_id": rid})
-            em = email_re.findall(line)
+            em = EMAIL_RE.findall(line)
             if em and not rec.get("email"):
                 rec["email"] = em[0]
-            user = re.findall(r"\buser_\d+\b", line)
+            user = USER_RE.findall(line)
             if user and not rec.get("customer_reference"):
                 rec["customer_reference"] = user[0]
+    page_users = sorted(set(USER_RE.findall(text)))
+    page_emails = sorted(set(EMAIL_RE.findall(text)))
+    page_phones = sorted(set(PHONE_RE.findall(text)))
+    single = len(out) == 1
+    subject_filter = re.search(r"subject filter:?\s*(user_\d+)", text, re.I)
+    for rec in out.values():
+        if single:
+            if not rec.get("customer_reference") and len(page_users) == 1:
+                rec["customer_reference"] = page_users[0]
+            if not rec.get("email") and len(page_emails) == 1:
+                rec["email"] = page_emails[0]
+            if len(page_phones) == 1:
+                rec["phone"] = page_phones[0]
+            m = RETAIN_RE.search(text)
+            if m:
+                rec["retention_until"] = _iso_day(m.group(1))
+            if kind == "pdf" and re.search(r"\battachment\b|\bfile \S+\.pdf", text, re.I):
+                rec["file_name"] = "attachment"      # marks a support attachment
+        if subject_filter and not rec.get("customer_reference"):
+            rec["customer_reference"] = subject_filter.group(1)
     return list(out.values())
 
 
@@ -154,7 +194,7 @@ def _lev(a: str, b: str, cap: int) -> int:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", choices=["anthropic", "ocr"], default="anthropic")
+    ap.add_argument("--backend", choices=["anthropic", "local"], default="local")
     ap.add_argument("--model", default=os.environ.get("GHOST_VISION_MODEL") or DEFAULT_MODEL)
     ap.add_argument("--dataset", default=str(ROOT / "dataset"))
     ap.add_argument("--out", default=str(CODE / "cache"))
@@ -170,7 +210,7 @@ def main(argv=None) -> int:
             known |= {norm_ident(a["old_value"]), norm_ident(a["new_value"])}
     key = _env_key() if args.backend == "anthropic" else None
     if args.backend == "anthropic" and not key:
-        print("ANTHROPIC_API_KEY not set (env or .env); use --backend ocr or add the key.")
+        print("ANTHROPIC_API_KEY not set (env or .env); use --backend local or add the key.")
         return 2
     usage_log = out / "usage_log.jsonl"
     for ef in load_manifest(dataset / "evidence_files.csv"):
@@ -201,7 +241,7 @@ def main(argv=None) -> int:
         else:
             text = pdf_text(path) if path.suffix.lower() == ".pdf" else subprocess.run(
                 ["tesseract", str(path), "-"], capture_output=True, text=True).stdout
-            records = ocr_records(text)
+            records = local_records(text, "pdf" if path.suffix.lower() == ".pdf" else "image")
         records = validate(records, known)
         for r in records:                       # status word -> result field for normalize
             if r.get("status"):

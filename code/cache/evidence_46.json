@@ -1,7 +1,7 @@
 {
  "file_id": "evidence_46",
  "path": "evidence/images/object_storage_browser_20260213.png",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-02-13T08:00:00Z",
  "usage": {},

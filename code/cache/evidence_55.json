@@ -1,13 +1,15 @@
 {
  "file_id": "evidence_55",
  "path": "evidence/documents/security_retention_extract.pdf",
- "backend": "ocr",
+ "backend": "local",
  "model": "tesseract",
  "captured_at": "2026-09-05T06:30:00Z",
  "usage": {},
  "records": [
   {
-   "resource_id": "audit_record_003"
+   "resource_id": "audit_record_003",
+   "customer_reference": "user_03",
+   "retention_until": "2027-08-25T00:00:00Z"
   }
  ]
 }
