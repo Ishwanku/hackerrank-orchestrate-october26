@@ -15,6 +15,7 @@ from .identity import Subject
 from .models import Scope
 from .models import DIRECT_ID_FIELDS, REFERENCE_FIELDS, Observation, norm_ident
 from .world import World
+from .ablation import off
 
 REDACTED_MARKERS = ("[redacted]", "redacted")
 
@@ -89,7 +90,7 @@ def resource_state(world: World, rid: str, audit_at: str, subject: Subject,
     # complete listings that do not contain this resource -> absent at capture time
     for sc in scopes_by_system.get(system, []):
         cap = world.evidence_time(sc.evidence_id)
-        if sc.subjects is not None and not (sc.subjects & subject.link_keys):
+        if sc.subjects is not None and not off("scope_subjects") and not (sc.subjects & subject.link_keys):
             continue
         if cap and cap <= audit_at and sc.captured_at <= audit_at and rid not in sc.present:
             obs.append(Observation(evidence_id=sc.evidence_id, observed_at=sc.captured_at,

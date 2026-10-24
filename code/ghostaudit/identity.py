@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from .models import norm_ident
+from .ablation import off
 
 
 def email_hash(email: str) -> str:
@@ -78,7 +79,7 @@ class IdentityIndex:
             s.hashes.add(r["email_hash"].lower())
         if r.get("name"):
             s.names.add(r["name"].strip().lower())
-        for a in self.changes.get(user_id, []):
+        for a in ([] if off("history") else self.changes.get(user_id, [])):
             if not as_of or a["event_time"] <= as_of:
                 s.audit_ids.append(a["audit_id"])
             for v in (a["old_value"], a["new_value"]):

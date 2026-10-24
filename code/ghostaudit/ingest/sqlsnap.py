@@ -49,6 +49,14 @@ def load_sql(ef: EvidenceFile, path: Path) -> tuple[list[Observation], list[Scop
     m = re.search(r"Captured at:\s*(\S+)", text)
     file_when = m.group(1) if m else ef.captured_at
     con = sqlite3.connect(":memory:")
+    try:
+        return _load(con, text, ef, file_when)
+    finally:
+        con.close()
+
+
+def _load(con: sqlite3.Connection, text: str, ef: EvidenceFile,
+          file_when: str) -> tuple[list[Observation], list[Scope]]:
     con.executescript(text)
     tables = [r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")]
     obs: list[Observation] = []

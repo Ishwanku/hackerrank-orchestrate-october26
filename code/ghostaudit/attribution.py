@@ -31,6 +31,7 @@ from .config import prefix_of
 from .graph import EvidenceGraph
 from .identity import IdentityIndex
 from .intent import classify
+from .ablation import off
 from .models import Request
 from .world import World
 
@@ -77,7 +78,7 @@ def attribute(world: World, idx: IdentityIndex, graph: EvidenceGraph,
     for r in requests:
         uid = user_of.get(r.case_id)
         for rid, links in (links_of.get(uid) or {}).items():
-            if _stale_negative(world, rid, links, r.requested_at):
+            if not off("stale_filter") and _stale_negative(world, rid, links, r.requested_at):
                 att.via[(r.case_id, rid)] = "dropped:pre-request-negative"
                 continue
             att.resources[r.case_id].add(rid)
@@ -102,6 +103,8 @@ def attribute(world: World, idx: IdentityIndex, graph: EvidenceGraph,
             continue
         needy[(r.reported_at[:10], STATUS_TO_RESULT.get(r.reported_status, ""))].append(r)
     for key, rids in candidates.items():
+        if off("workflow"):
+            break
         cases = needy.get(key, [])
         if len(cases) == 1 and len(rids) == 1:
             rid = next(iter(rids))

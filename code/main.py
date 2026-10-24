@@ -18,6 +18,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 
+from ghostaudit.ablation import off  # noqa: E402
 from ghostaudit.config import OUTPUT_HEADER  # noqa: E402
 from ghostaudit.perception.cache import load_perception  # noqa: E402
 from ghostaudit.pipeline import Auditor  # noqa: E402
@@ -44,7 +45,8 @@ def main(argv=None) -> int:
 
     t0 = time.time()
     dataset = Path(args.dataset)
-    world = load_world(dataset, extra_observations=load_perception(dataset, HERE / "cache"))
+    extra = [] if off("perception") else load_perception(dataset, HERE / "cache")
+    world = load_world(dataset, extra_observations=extra)
     auditor = Auditor(world)
     requests = world.sample_requests if args.sample else world.requests
     results = [auditor.audit(r) for r in requests]          # input order = numeric case order
