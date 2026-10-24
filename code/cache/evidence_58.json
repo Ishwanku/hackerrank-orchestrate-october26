@@ -1,0 +1,13 @@
+{
+ "file_id": "evidence_58",
+ "path": "evidence/documents/delivery_correction_attachment.pdf",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-09-12T07:30:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "support_001"
+  }
+ ]
+}

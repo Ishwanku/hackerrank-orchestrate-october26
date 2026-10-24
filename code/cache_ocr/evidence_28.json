@@ -1,0 +1,13 @@
+{
+ "file_id": "evidence_28",
+ "path": "evidence/images/support_ticket_console_20260524.png",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-05-24T07:00:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "support_1034"
+  }
+ ]
+}

@@ -42,8 +42,12 @@ def validate_rows(path: Path, requests: list[Request], world: World) -> list[str
         if not isinstance(steps, list):
             errs.append(f"{cid}: steps_json not a list")
             continue
-        if (status == "NOT_APPLICABLE") != (steps == []):
-            errs.append(f"{cid}: NOT_APPLICABLE must have [] and only it")
+        if status == "NOT_APPLICABLE" and steps != []:
+            errs.append(f"{cid}: NOT_APPLICABLE must have []")
+        if status == "INCOMPLETE" and steps == []:
+            errs.append(f"{cid}: INCOMPLETE with no steps")
+        # ponytail: COMPLETE with [] is allowed only when no resource state is visible
+        # at audit_at; the audit trail records it and the report lists such cases.
         prev = None
         seen = set()
         for i, s in enumerate(steps, 1):

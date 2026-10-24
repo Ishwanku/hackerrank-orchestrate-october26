@@ -1,0 +1,15 @@
+{
+ "file_id": "evidence_09",
+ "path": "evidence/images/search_index_inspector_20260901.png",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-09-01T06:00:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "search_428",
+   "email": "g.silva76@gmail.com",
+   "customer_reference": "user_13"
+  }
+ ]
+}

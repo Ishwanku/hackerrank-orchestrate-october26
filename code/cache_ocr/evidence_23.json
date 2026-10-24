@@ -1,0 +1,25 @@
+{
+ "file_id": "evidence_23",
+ "path": "evidence/images/customer_export_console_20260618.png",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-06-18T12:00:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "export_1260",
+   "email": "ingrid.dahl@outlook.com",
+   "_unverified_email": "ingrid.dahl@outiook.com"
+  },
+  {
+   "resource_id": "export_1259",
+   "email": null,
+   "_unverified_email": "sara.kim@northstar.shop"
+  },
+  {
+   "resource_id": "export_1258",
+   "email": null,
+   "_unverified_email": "park@northstar.shop"
+  }
+ ]
+}

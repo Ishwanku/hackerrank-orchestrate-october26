@@ -1,0 +1,15 @@
+{
+ "file_id": "evidence_60",
+ "path": "evidence/images/marketing_profile_console.png",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-09-16T07:20:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "marketing_001",
+   "email": null,
+   "_unverified_email": "sj.park@naver.com"
+  }
+ ]
+}

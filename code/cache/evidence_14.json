@@ -1,0 +1,13 @@
+{
+ "file_id": "evidence_14",
+ "path": "evidence/images/connector_management_console_20260807.png",
+ "backend": "ocr",
+ "model": "tesseract",
+ "captured_at": "2026-08-07T08:00:00Z",
+ "usage": {},
+ "records": [
+  {
+   "resource_id": "data_flow_1121"
+  }
+ ]
+}
